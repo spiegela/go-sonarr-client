@@ -179,3 +179,47 @@ type SystemStatus struct {
 	RuntimeVersion    string `json:"runtimeVersion"`
 	RuntimeName       string `json:"runtimeName"`
 }
+
+// SearchResults are results of Sonarr's online series lookup
+// not the results of what's already located on the Sonarr server
+type SearchResults struct {
+	Added         string   `json:"added"`
+	AirTime       string   `json:"airTime"`
+	Certification string   `json:"certification"`
+	CleanTitle    string   `json:"cleanTitle"`
+	FirstAired    string   `json:"firstAired"`
+	Genres        []string `json:"genres"`
+	Images        []struct {
+		CoverType string `json:"coverType"`
+		URL       string `json:"url"`
+	} `json:"images"`
+	ImdbID           string `json:"imdbId"`
+	Monitored        bool   `json:"monitored"`
+	Network          string `json:"network"`
+	Overview         string `json:"overview"`
+	ProfileID        int    `json:"profileId"`
+	QualityProfileID int    `json:"qualityProfileId"`
+	Ratings          struct {
+		Value float64 `json:"value"`
+		Votes int     `json:"votes"`
+	} `json:"ratings"`
+	RemotePoster string `json:"remotePoster"`
+	Runtime      int    `json:"runtime"`
+	SeasonCount  int    `json:"seasonCount"`
+	SeasonFolder bool   `json:"seasonFolder"`
+	Seasons      []struct {
+		Monitored    bool `json:"monitored"`
+		SeasonNumber int  `json:"seasonNumber"`
+	} `json:"seasons"`
+	SeriesType        string   `json:"seriesType"`
+	SortTitle         string   `json:"sortTitle"`
+	Status            string   `json:"status"`
+	Tags              []string `json:"tags"`
+	Title             string   `json:"title"`
+	TitleSlug         string   `json:"titleSlug"`
+	TvMazeID          int      `json:"tvMazeId"`
+	TvRageID          int      `json:"tvRageId"`
+	TvdbID            int      `json:"tvdbId"`
+	UseSceneNumbering bool     `json:"useSceneNumbering"`
+	Year              int      `json:"year"`
+}

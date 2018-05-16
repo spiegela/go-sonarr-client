@@ -285,3 +285,25 @@ func (s *Sonarr) GetTags() ([]Tag, error) {
 	err = json.NewDecoder(res.Body).Decode(&results)
 	return results, err
 }
+
+// Search searches for media via tvdb (or Sonarr's default search engine)
+func (s *Sonarr) Search(title string) ([]SearchResults, error) {
+	// const searchOnlineEndpoint = "/api/series/lookup?term="
+	const searchOnlineEndpoint = "/api/series/lookup"
+
+	var results []SearchResults
+
+	resp, err := s.get(searchOnlineEndpoint, url.Values{
+		"term": []string{title},
+	})
+
+	if err != nil {
+		return results, err
+	}
+
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&results)
+
+	return results, err
+}
