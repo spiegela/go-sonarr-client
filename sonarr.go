@@ -303,6 +303,11 @@ func (s *Sonarr) Search(title string) ([]SearchResults, error) {
 
 	defer resp.Body.Close()
 
+	// sonarr returns a json object with a field `error` for an invalid api key
+	if resp.StatusCode != http.StatusOK {
+		return results, errors.New(resp.Status)
+	}
+
 	err = json.NewDecoder(resp.Body).Decode(&results)
 
 	return results, err
