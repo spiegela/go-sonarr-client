@@ -3,8 +3,10 @@ package sonarr
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 func (s *Sonarr) get(endpoint string, params url.Values) (*http.Response, error) {
@@ -18,6 +20,8 @@ func (s *Sonarr) get(endpoint string, params url.Values) (*http.Response, error)
 	}
 	params.Set("apikey", s.apiKey)
 	endpointURL.RawQuery = params.Encode()
+
+	fmt.Printf("sonarr GET request: %s\n", endpoint)
 
 	req, err := http.NewRequest("GET", endpointURL.String(), nil)
 	if err != nil {
@@ -48,6 +52,31 @@ func (s *Sonarr) put(endpoint string, payload interface{}) (*http.Response, erro
 	}
 
 	return s.HTTPClient.Do(req)
+}
+
+func (s Sonarr) post(query string, body []byte) (*http.Response, error) {
+	relativeURL, err := url.Parse(query)
+
+	if err != nil {
+		return &http.Response{}, err
+	}
+
+	endpointURL := s.baseURL.ResolveReference(relativeURL)
+
+	client := http.Client{
+		Timeout: time.Duration(s.Timeout) * time.Second,
+	}
+
+	req, err := http.NewRequest("POST", endpointURL.String(), bytes.NewBuffer(body))
+
+	if err != nil {
+		return &http.Response{}, err
+	}
+
+	req.Header.Set("x-api-key", s.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	return client.Do(req)
 }
 
 func (s *Sonarr) del(endpoint string, params url.Values) (*http.Response, error) {

@@ -15,6 +15,8 @@ type Sonarr struct {
 	baseURL    *url.URL
 	apiKey     string
 	HTTPClient http.Client
+	// Timeout in seconds -- default 5
+	Timeout int
 }
 
 const (
@@ -201,6 +203,10 @@ func (s *Sonarr) GetAllSeries() ([]Series, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return results, errors.New(res.Status)
+	}
+
 	err = json.NewDecoder(res.Body).Decode(&results)
 	return results, err
 }
@@ -218,8 +224,56 @@ func (s *Sonarr) GetSeries(seriesID int) (*Series, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return results, errors.New(res.Status)
+	}
+
 	err = json.NewDecoder(res.Body).Decode(results)
 	return results, err
+}
+
+// GetSeriesFromTVDB retrieves the Series with the given ID.
+func (s *Sonarr) GetSeriesFromTVDB(seriesID int) (*Series, error) {
+	const endpoint = "/api/series/lookup"
+
+	params := url.Values{}
+
+	params.Set("term", fmt.Sprintf("tvdb:%d", seriesID))
+
+	matchedSeries := &Series{}
+
+	if seriesID <= 0 {
+		return matchedSeries, errors.New("seriesID must be a positive integer")
+	}
+
+	res, err := s.get(endpoint, params)
+
+	if err != nil {
+		return matchedSeries, err
+	}
+
+	defer res.Body.Close()
+
+	// handle non-200 status code
+	if res.StatusCode != http.StatusOK {
+		return matchedSeries, errors.New(res.Status)
+	}
+
+	var results []Series
+
+	err = json.NewDecoder(res.Body).Decode(&results)
+
+	for _, show := range results {
+		if show.TvdbID == seriesID {
+			matchedSeries = &show
+		}
+	}
+
+	if matchedSeries.TvdbID != seriesID {
+		return matchedSeries, errors.New("invalid series id: " + strconv.Itoa(seriesID))
+	}
+
+	return matchedSeries, err
 }
 
 // UpdateSeries updates the given Series.
@@ -236,6 +290,54 @@ func (s *Sonarr) UpdateSeries(ser *Series) (*Series, error) {
 
 	err = json.NewDecoder(res.Body).Decode(results)
 	return results, err
+}
+
+// AddSeries adds a movie to your wanted list
+func (s Sonarr) AddSeries(series Series) error {
+	const endpoint = "/api/series"
+
+	// check required fields
+	if series.Title == "" {
+		return errors.New("title is required")
+	}
+
+	if series.QualityProfileID == 0 {
+		return errors.New("quality profile id needs to be set")
+	}
+
+	if series.TitleSlug == "" {
+		return errors.New("title slug is required")
+	}
+
+	if len(series.Images) == 0 {
+		return errors.New("an array of images is required")
+	}
+
+	if series.TvdbID == 0 {
+		return errors.New("tvdbid is required")
+	}
+
+	if series.Path == "" && series.RootFolderPath == "" {
+		return errors.New("either a path or rootFolderPath is required")
+	}
+
+	requestPayload, err := json.Marshal(series)
+
+	if err != nil {
+		return err
+	}
+
+	resp, err := s.post(endpoint, requestPayload)
+
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return errors.New(resp.Status)
+	}
+
+	return nil
 }
 
 // DeleteSeries deletes the Series with the given ID.

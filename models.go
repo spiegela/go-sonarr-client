@@ -4,7 +4,12 @@ import "time"
 
 // Series stored on the Sonarr server.
 type Series struct {
-	Title           string `json:"title"`
+	Title      string `json:"title"`
+	AddOptions struct {
+		IgnoreEpisodesWithFiles    bool `json:"ignoreEpisodesWithFiles"`
+		IgnoreEpisodesWithoutFiles bool `json:"ignoreEpisodesWithoutFiles"`
+		SearchForMissingEpisodes   bool `json:"searchForMissingEpisodes"`
+	} `json:"addOptions"`
 	AlternateTitles []struct {
 		Title        string `json:"title"`
 		SeasonNumber int    `json:"seasonNumber"`
@@ -59,8 +64,9 @@ type Series struct {
 		Votes int     `json:"votes"`
 		Value float32 `json:"value"`
 	} `json:"ratings"`
-	QualityProfileID int `json:"qualityProfileId"`
-	ID               int `json:"id"`
+	RootFolderPath   string `json:"rootFolderPath"`
+	QualityProfileID int    `json:"qualityProfileId"`
+	ID               int    `json:"id"`
 }
 
 // Episode of a Series.
