@@ -3,7 +3,6 @@ package sonarr
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -20,8 +19,6 @@ func (s *Sonarr) get(endpoint string, params url.Values) (*http.Response, error)
 	}
 	params.Set("apikey", s.apiKey)
 	endpointURL.RawQuery = params.Encode()
-
-	fmt.Printf("sonarr GET request: %s\n", endpoint)
 
 	req, err := http.NewRequest("GET", endpointURL.String(), nil)
 	if err != nil {
