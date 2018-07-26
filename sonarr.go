@@ -44,6 +44,7 @@ func New(apiURL, apiKey string) (*Sonarr, error) {
 	}
 
 	baseURL, err := url.Parse(apiURL)
+
 	if err != nil {
 		return &Sonarr{}, fmt.Errorf("Failed to parse baseURL: %v", err)
 	}

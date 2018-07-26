@@ -5,22 +5,29 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
 func (s *Sonarr) get(endpoint string, params url.Values) (*http.Response, error) {
-	relativeURL, err := url.Parse(endpoint)
+	endpointURL, err := url.Parse(endpoint)
+
 	if err != nil {
 		return &http.Response{}, err
 	}
-	endpointURL := s.baseURL.ResolveReference(relativeURL)
+
 	if params == nil {
 		params = endpointURL.Query()
 	}
+
 	params.Set("apikey", s.apiKey)
+
 	endpointURL.RawQuery = params.Encode()
 
-	req, err := http.NewRequest("GET", endpointURL.String(), nil)
+	requestURL := appendEndpoint(s.baseURL.String(), endpointURL.String())
+
+	req, err := http.NewRequest("GET", requestURL, nil)
+
 	if err != nil {
 		return &http.Response{}, err
 	}
@@ -30,20 +37,26 @@ func (s *Sonarr) get(endpoint string, params url.Values) (*http.Response, error)
 
 func (s *Sonarr) put(endpoint string, payload interface{}) (*http.Response, error) {
 	body, err := json.Marshal(payload)
+
 	if err != nil {
 		return &http.Response{}, err
 	}
-	relativeURL, err := url.Parse(endpoint)
+
+	endpointURL, err := url.Parse(endpoint)
+
 	if err != nil {
 		return &http.Response{}, err
 	}
-	endpointURL := s.baseURL.ResolveReference(relativeURL)
 
 	params := endpointURL.Query()
+
 	params.Set("apikey", s.apiKey)
+
 	endpointURL.RawQuery = params.Encode()
 
-	req, err := http.NewRequest("PUT", endpointURL.String(), bytes.NewBuffer(body))
+	requestURL := appendEndpoint(s.baseURL.String(), endpointURL.String())
+
+	req, err := http.NewRequest("PUT", requestURL, bytes.NewBuffer(body))
 	if err != nil {
 		return &http.Response{}, err
 	}
@@ -52,19 +65,19 @@ func (s *Sonarr) put(endpoint string, payload interface{}) (*http.Response, erro
 }
 
 func (s Sonarr) post(query string, body []byte) (*http.Response, error) {
-	relativeURL, err := url.Parse(query)
+	endpointURL, err := url.Parse(query)
 
 	if err != nil {
 		return &http.Response{}, err
 	}
 
-	endpointURL := s.baseURL.ResolveReference(relativeURL)
-
 	client := http.Client{
 		Timeout: time.Duration(s.Timeout) * time.Second,
 	}
 
-	req, err := http.NewRequest("POST", endpointURL.String(), bytes.NewBuffer(body))
+	requestURL := appendEndpoint(s.baseURL.String(), endpointURL.String())
+
+	req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer(body))
 
 	if err != nil {
 		return &http.Response{}, err
@@ -77,21 +90,40 @@ func (s Sonarr) post(query string, body []byte) (*http.Response, error) {
 }
 
 func (s *Sonarr) del(endpoint string, params url.Values) (*http.Response, error) {
-	relativeURL, err := url.Parse(endpoint)
+	endpointURL, err := url.Parse(endpoint)
+
 	if err != nil {
 		return &http.Response{}, err
 	}
-	endpointURL := s.baseURL.ResolveReference(relativeURL)
+
 	if params == nil {
 		params = endpointURL.Query()
 	}
+
 	params.Set("apikey", s.apiKey)
+
 	endpointURL.RawQuery = params.Encode()
 
-	req, err := http.NewRequest("DELETE", endpointURL.String(), nil)
+	requestURL := appendEndpoint(s.baseURL.String(), endpointURL.String())
+
+	req, err := http.NewRequest("DELETE", requestURL, nil)
+
 	if err != nil {
 		return &http.Response{}, err
 	}
 
 	return s.HTTPClient.Do(req)
+}
+
+// appendEndpoint checks for and applies a "/" to a url when necessary
+func appendEndpoint(baseURL, endpoint string) string {
+	// /api/series && http://192.168.1.25:8989/
+	if strings.HasPrefix(endpoint, "/") && strings.HasSuffix(baseURL, "/") {
+		endpoint = endpoint[1:]
+	} else if !strings.HasPrefix(endpoint, "/") && !strings.HasSuffix(baseURL, "/") {
+		// api/series && http://192.168.1.25:8989
+		endpoint = "/" + endpoint
+	}
+
+	return baseURL + endpoint
 }
