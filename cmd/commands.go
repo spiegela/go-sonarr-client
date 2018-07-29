@@ -331,8 +331,16 @@ func addSeries(c *cli.Context) error {
 	series.RootFolderPath = rootFolder
 	series.Monitored = true
 
-	if err := client.AddSeries(*series); err != nil {
-		return cli.NewExitError(err, 1)
+	if errors := client.AddSeries(*series); errors != nil {
+		output := ""
+
+		for _, err := range errors {
+			output += err.Error() + "\n"
+		}
+
+		fmt.Printf(output)
+
+		return cli.NewExitError(fmt.Errorf(""), 1)
 	}
 
 	fmt.Printf("added %s (%d) successfully\n", series.Title, series.Year)
