@@ -1,6 +1,9 @@
 package sonarr
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 // Series stored on the Sonarr server.
 type Series struct {
@@ -229,3 +232,21 @@ type SearchResults struct {
 	UseSceneNumbering bool     `json:"useSceneNumbering"`
 	Year              int      `json:"year"`
 }
+
+// ErrorMessage radarr's error message struct
+type ErrorMessage struct {
+	PropertyName                      string      `json:"propertyName"`
+	Message                           string      `json:"errorMessage"`
+	AttemptedValue                    interface{} `json:"attemptedValue"`
+	FormattedMessageArguments         []string    `json:"formattedMessageArguments"`
+	FormattedMessagePlaceholderValues struct {
+		PropertyName  string      `json:"propertyName"`
+		PropertyValue interface{} `json:"propertyValue"`
+	} `json:"formattedMessagePlaceholderValues"`
+}
+
+// ErrorSeriesExists error when trying to add an already added series
+var ErrorSeriesExists = errors.New("This series has already been added")
+
+// ErrorPathAlreadyConfigured path exists for another series
+var ErrorPathAlreadyConfigured = errors.New("Path is already configured for another series")

@@ -348,7 +348,18 @@ func (s Sonarr) AddSeries(series Series) []error {
 
 		// turn ErrorMessage into Go error
 		for _, err := range errMessages {
-			errs = append(errs, fmt.Errorf(err.Message))
+			var newErr error
+
+			switch err.Message {
+			case ErrorSeriesExists.Error():
+				newErr = ErrorSeriesExists
+			case ErrorPathAlreadyConfigured.Error():
+				newErr = ErrorPathAlreadyConfigured
+			default:
+				newErr = fmt.Errorf(err.Message)
+			}
+
+			errs = append(errs, newErr)
 		}
 
 		return errs
