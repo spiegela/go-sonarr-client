@@ -40,7 +40,7 @@ type Series struct {
 			EpisodeCount      int       `json:"episodeCount"`
 			TotalEpisodeCount int       `json:"totalEpisodeCount"`
 			SizeOnDisk        int       `json:"sizeOnDisk"`
-			PercentOfEpisodes int       `json:"percentOfEpisodes"`
+			PercentOfEpisodes float64   `json:"percentOfEpisodes"`
 		} `json:"statistics"`
 	} `json:"seasons"`
 	Year              int       `json:"year"`
